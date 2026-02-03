@@ -243,30 +243,32 @@ function pickNextIndex(state, lastIndex) {
 
   if (!active.length) return -1;
 
+  // ✅ Find all cards that are due
   const due = active.filter(i => prog[i].dueMs <= t);
 
-  const pickFrom = (arr) => {
-    const filtered = (arr.length > 1 && lastIndex >= 0) ? arr.filter(i => i !== lastIndex) : arr;
-    const list = filtered.length ? filtered : arr;
+  // ✅ If any due, pick RANDOM due card
+  if (due.length) {
+    let choices = due;
 
-    const sorted = [...list].sort((a, b) => prog[a].dueMs - prog[b].dueMs);
-    const topK = sorted.slice(0, Math.min(4, sorted.length));
-    return topK[Math.floor(Math.random() * topK.length)];
-  };
+    // Avoid immediate repeat if possible
+    if (due.length > 1 && lastIndex >= 0) {
+      choices = due.filter(i => i !== lastIndex);
+      if (!choices.length) choices = due;
+    }
 
-  if (due.length) return pickFrom(due);
-
-  // none due -> soonest due within active
-  let best = active[0];
-  for (const i of active) {
-    if (prog[i].dueMs < prog[best].dueMs) best = i;
+    return choices[Math.floor(Math.random() * choices.length)];
   }
-  if (best === lastIndex && active.length > 1) {
-    const sorted = [...active].sort((a, b) => prog[a].dueMs - prog[b].dueMs);
-    return sorted[1] ?? best;
+
+  // ✅ If none due yet, pick random active card anyway
+  let choices = active;
+  if (active.length > 1 && lastIndex >= 0) {
+    choices = active.filter(i => i !== lastIndex);
+    if (!choices.length) choices = active;
   }
-  return best;
+
+  return choices[Math.floor(Math.random() * choices.length)];
 }
+
 
 function dueCountActive() {
   const t = nowMs();
