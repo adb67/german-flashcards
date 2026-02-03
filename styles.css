@@ -65,9 +65,10 @@ h1{
 button{
   appearance: none;
   border: 0;
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-weight: 800;
+  border-radius: 16px;
+  padding: 18px 18px;       /* ✅ bigger tap area */
+  font-weight: 900;
+  font-size: 18px;          /* ✅ larger text */
   color: #fff;
   background: #2a3a6a;
   cursor: pointer;
