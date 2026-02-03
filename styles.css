@@ -294,3 +294,14 @@ code{
   .card{ padding: 14px; }
   .front{ font-size: 30px; }
 }
+
+#startBtn{
+  padding: 22px;
+  font-size: 20px;
+  border-radius: 20px;
+}
+
+.controls button{
+  padding: 22px;
+  font-size: 20px;
+}
