@@ -130,3 +130,11 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monos
   font-size: 12px;
   color:#9fb3ff;
 }
+
+/* Fix: don't apply the text-input styling to checkboxes */
+.typeItem input[type="checkbox"]{
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
