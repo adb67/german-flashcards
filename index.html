@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>German Flashcards</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- MAIN MENU / FILTER OVERLAY -->
+  <section id="menuOverlay" class="overlay hidden" aria-modal="true" role="dialog">
+    <div class="overlayCard">
+      <div class="overlayTitle">Choose what to learn</div>
+      <div class="overlaySub">Select one or more word types (or Select all).</div>
+
+      <div class="row">
+        <button id="selectAllBtn" class="ghost">Select all</button>
+        <button id="selectNoneBtn" class="ghost">Select none</button>
+      </div>
+
+      <div id="typeList" class="typeList"></div>
+
+      <div class="row">
+        <button id="startBtn" class="good">Start</button>
+      </div>
+
+      <div class="overlayFoot">
+        You can change this anytime via <b>Menu</b>.
+      </div>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <header class="top">
+      <h1>German Flashcards</h1>
+      <div class="row headerRow">
+        <button id="menuBtn" class="ghost">Menu</button>
+        <button id="resetBtn" class="ghost" title="Reset progress for all cards">Reset</button>
+      </div>
+    </header>
+
+    <section class="card" id="card">
+      <div class="label" id="statusLine">Loading…</div>
+
+      <div class="front" id="frontText">…</div>
+
+      <!-- Answer area -->
+      <div id="answerBlock" class="hidden">
+        <div class="back" id="backText"></div>
+
+        <div class="examples">
+          <div class="exDe" id="exDe"></div>
+          <div class="exEn" id="exEn"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="flipBtn" class="flip">Show answer</button>
+      </div>
+
+      <div class="row">
+        <button id="speakBtn">🔊 Speak (DE)</button>
+        <button id="speakSlowBtn" class="ghost">🐢 Slow</button>
+      </div>
+
+      <label class="toggle">
+        <input type="checkbox" id="autoSpeakToggle" />
+        <span>Auto-speak German on new card</span>
+      </label>
+    </section>
+
+    <section class="controls">
+      <button id="wrongBtn" class="bad">❌ Wrong</button>
+      <button id="rightBtn" class="good">✅ Right</button>
+    </section>
+
+    <details class="manage">
+      <summary>Manage cards (CSV / Import / Export)</summary>
+
+      <div class="block">
+        <div class="small">Auto-load CSV (recommended)</div>
+        <div class="small hint">
+          If the file <code>flashcard_final_with_examples.csv</code> is in the same folder as the app, it will load automatically.
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="small">Import a CSV from your device (iPhone Files)</div>
+        <input id="csvFileInput" type="file" accept=".csv,text/csv" />
+        <div class="small hint">This replaces the deck + progress.</div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="block">
+        <div class="small">Optional: CSV link (Google Sheets “Publish to web” → CSV)</div>
+        <input id="csvUrl" placeholder="Paste published CSV URL here" />
+        <div class="row">
+          <button id="saveCsvBtn">Save CSV URL</button>
+          <button id="refreshCsvBtn">Refresh from CSV</button>
+        </div>
+        <div class="small hint">
+          CSV headers expected: <code>de,en,type,example,example_en</code>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="row">
+        <button id="exportBtn">Export JSON</button>
+        <button id="importBtn">Import JSON</button>
+      </div>
+
+      <textarea id="jsonBox" rows="10" spellcheck="false"
+        placeholder='Paste/export JSON here...'></textarea>
+
+      <p class="hint">
+        Export backs up your deck. Import replaces your deck + progress.
+      </p>
+    </details>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
