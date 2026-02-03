@@ -1,140 +1,295 @@
-:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-body { margin: 0; background:#0b1220; color:#e8eefc; }
-.wrap { max-width: 520px; margin: 0 auto; padding: 18px; }
-.top { display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; }
-h1 { font-size: 20px; margin: 0; }
+/* =========================================================
+   German Flashcards — styles.css (clean + iPhone friendly)
+   Fixes:
+   - checkboxes are NOT styled like text inputs
+   - Start button taps work (no oversized checkbox overlay)
+   ========================================================= */
 
-button { border:0; border-radius: 12px; padding: 12px 14px; font-weight: 700; }
-button:active { transform: translateY(1px); }
+:root{
+  --bg: #0b1220;
+  --panel: #101a33;
+  --panel2: #0f1830;
+  --border: #23315d;
+  --muted: #9fb3ff;
+  --text: #e8eefc;
+  --text2: #cfe0ff;
 
-.ghost { background: transparent; color:#b9c7ff; border:1px solid #2a3a6a; }
+  --good: #2a7a4a;
+  --bad: #8a2d2d;
+  --accent: #223164;
 
-.headerRow { gap: 10px; }
-.headerRow button { padding: 10px 12px; }
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+
+*{ box-sizing: border-box; }
+html, body { height: 100%; }
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap{
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h1{
+  font-size: 20px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.row{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.headerRow{
+  gap: 10px;
+}
+
+button{
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-weight: 800;
+  color: #fff;
+  background: #2a3a6a;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:active{ transform: translateY(1px); }
+
+.ghost{
+  background: transparent;
+  color: #b9c7ff;
+  border: 1px solid #2a3a6a;
+}
+
+.good{ background: var(--good); }
+.bad{ background: var(--bad); }
 
 .card{
   margin-top: 14px;
-  background:#101a33;
-  border:1px solid #23315d;
-  border-radius: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 16px;
   min-height: 300px;
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.label { font-size: 12px; color:#9fb3ff; }
-.front { font-size: 34px; line-height:1.1; margin-top: 6px; }
-.back  { font-size: 22px; color:#cfe0ff; margin-top: 6px; }
+.label{
+  font-size: 12px;
+  color: var(--muted);
+}
 
-.examples { margin-top: 10px; border-top: 1px solid #23315d; padding-top: 10px; }
-.exDe { font-size: 16px; color:#e8eefc; }
-.exEn { font-size: 14px; color:#9fb3ff; margin-top: 6px; }
+.front{
+  font-size: 34px;
+  line-height: 1.1;
+  margin-top: 6px;
+}
 
-.hidden { display:none; }
+.back{
+  font-size: 22px;
+  color: var(--text2);
+  margin-top: 6px;
+}
 
-.row { display:flex; gap: 10px; align-items:center; }
-.row button { flex: 1; }
+.hidden{ display: none !important; }
 
-.flip { background:#223164; color:#e8eefc; width: 100%; }
+.flip{
+  width: 100%;
+  background: var(--accent);
+  color: var(--text);
+}
 
-.controls { display:flex; gap: 12px; margin-top: 14px; }
-.good { flex:1; background:#2a7a4a; color:#fff; }
-.bad  { flex:1; background:#8a2d2d; color:#fff; }
+.controls{
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
 
-.manage {
+.controls button{
+  flex: 1;
+}
+
+/* Examples under the answer */
+.examples{
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.exDe{
+  font-size: 16px;
+  color: var(--text);
+}
+
+.exEn{
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Toggle row */
+.toggle{
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text2);
+}
+
+/* IMPORTANT: only style “text-like” inputs, NOT checkboxes */
+input[type="text"],
+input[type="url"],
+input[type="file"],
+textarea{
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  padding: 10px;
+  outline: none;
+}
+
+/* Textarea spacing */
+textarea{ margin-top: 10px; }
+
+/* Checkboxes must remain natural-sized */
+input[type="checkbox"]{
+  width: auto;
+  padding: 0;
+  margin: 0;
+  accent-color: #3c6fff;
+}
+
+.manage{
   margin-top: 16px;
-  background:#0f1830;
-  border:1px solid #23315d;
-  border-radius: 16px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 12px;
 }
 
-.block { margin-top: 10px; }
-.small { font-size: 12px; color:#9fb3ff; margin-bottom: 8px; }
+.block{ margin-top: 10px; }
 
-input, textarea {
-  width: 100%;
-  border-radius: 12px;
-  border:1px solid #23315d;
-  background:#0b1220;
-  color:#e8eefc;
-  padding: 10px;
-  box-sizing: border-box;
+.small{
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
-textarea { margin-top: 10px; }
-
-.hint { font-size: 12px; color:#9fb3ff; margin: 8px 0 0; }
-.sep { border: 0; border-top: 1px solid #23315d; margin: 14px 0; }
-
-.toggle {
-  margin-top: auto;
-  display:flex;
-  gap: 10px;
-  align-items:center;
-  font-size: 14px;
-  color:#cfe0ff;
+.hint{
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 0;
 }
-.toggle input { width: auto; }
 
-code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.sep{
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
 
-/* Overlay menu */
-.overlay {
+code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* =========================================================
+   Overlay menu
+   ========================================================= */
+.overlay{
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.55);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 18px;
   z-index: 1000;
 }
 
-.overlayCard {
+.overlayCard{
   width: min(560px, 100%);
-  background:#0f1830;
-  border:1px solid #23315d;
-  border-radius: 18px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
-.overlayTitle { font-size: 18px; font-weight: 800; }
-.overlaySub { font-size: 13px; color:#9fb3ff; margin-top: 6px; }
+.overlayTitle{
+  font-size: 18px;
+  font-weight: 900;
+}
 
-.typeList {
+.overlaySub{
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Type list */
+.typeList{
   margin-top: 12px;
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   max-height: 40vh;
-  overflow:auto;
+  overflow: auto;
   padding: 10px;
-  border-radius: 14px;
-  border:1px solid #23315d;
-  background:#0b1220;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
 }
 
-.typeItem {
-  display:flex;
+.typeItem{
+  display: flex;
   gap: 10px;
-  align-items:center;
+  align-items: center;
   font-size: 15px;
+  padding: 6px 4px;
 }
 
-.overlayFoot {
+/* Make label tappable */
+.typeItem span{
+  user-select: none;
+}
+
+.overlayFoot{
   margin-top: 10px;
   font-size: 12px;
-  color:#9fb3ff;
+  color: var(--muted);
 }
 
-/* Fix: don't apply the text-input styling to checkboxes */
-.typeItem input[type="checkbox"]{
-  width: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
+/* Make buttons in rows fill nicely */
+.row > button{ flex: 1; }
+
+/* Small screens: slightly tighter padding */
+@media (max-width: 360px){
+  .wrap{ padding: 14px; }
+  .card{ padding: 14px; }
+  .front{ font-size: 30px; }
 }
