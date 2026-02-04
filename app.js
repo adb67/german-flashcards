@@ -372,6 +372,7 @@ function renderCard() {
   if (currentIndex < 0 || !state.cards.length || !active.length) {
     statusLine.textContent = active.length ? "Loading…" : "No cards match your selected types. Open Menu and select more.";
     frontText.textContent = active.length ? "…" : "No matching cards";
+    typeTag.textContent = "";
     answerBlock.classList.add("hidden");
     flipBtn.textContent = "Show answer";
     return;
