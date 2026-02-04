@@ -300,6 +300,7 @@ const rightBtn  = document.getElementById("rightBtn");
 const wrongBtn  = document.getElementById("wrongBtn");
 const resetBtn  = document.getElementById("resetBtn");
 const statusLine = document.getElementById("statusLine");
+const typeTag = document.getElementById("typeTag");
 
 const speakBtn = document.getElementById("speakBtn");
 const speakSlowBtn = document.getElementById("speakSlowBtn");
