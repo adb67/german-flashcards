@@ -218,6 +218,22 @@ code{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* ✅ Word type tag (noun/verb/etc) */
+.typeTag{
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #23315d;
+  color: #9fb3ff;
+}
+
+
 /* =========================================================
    Overlay menu
    ========================================================= */
