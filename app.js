@@ -381,6 +381,9 @@ function renderCard() {
   const p = state.progress[currentIndex];
 
   frontText.textContent = c.de;
+  // ✅ Show the word type on the card
+typeTag.textContent = c.type ? c.type.toUpperCase() : "";
+
 
   // Hide answer by default
   showingAnswer = false;
