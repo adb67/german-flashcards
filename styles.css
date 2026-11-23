@@ -412,3 +412,20 @@ code{
 .updateButtons button:disabled { opacity: 0.55; cursor: progress; }
 .updateStatus { margin-top: 8px; min-height: 18px; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .updateStatus.updateError { color: #ffa4a4; }
+
+/* English-to-German recall prompts for personal pronouns */
+.promptDirection {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+.promptContext {
+  color: var(--text2);
+  font-size: 15px;
+  margin-top: -2px;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
