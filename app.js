@@ -805,7 +805,7 @@ startBtn.addEventListener("click", () => {
 });
 
 // ---------- Startup ----------
-(async function start() {
+window.flashcardsReady = (async function start() {
   // Try to auto-load local CSV file if it exists on the same host
   const cards = await tryAutoLoadLocalCSV();
   state = reconcileStudyState(state, extendWithGrammar(cards && cards.length ? cards : state.cards));

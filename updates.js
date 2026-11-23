@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2026.11.23.5";
+  const APP_VERSION = "2026.11.23.6";
   const checkButton = document.getElementById("checkUpdateBtn");
   const reloadButton = document.getElementById("reloadAppBtn");
   const updateStatus = document.getElementById("updateStatus");
@@ -13,6 +13,8 @@
   if (!checkButton || !reloadButton || !updateStatus || !versionLabel) return;
 
   let busy = false;
+  let hiddenAt = null;
+  let lastCheckAt = 0;
   versionLabel.textContent = "Version " + APP_VERSION;
 
   function report(message, isError = false) {
@@ -59,31 +61,44 @@
     return true;
   }
 
-  function freshReload(targetVersion) {
-    if (!saveProgressBeforeReload()) return;
-    // This is still the SAME origin, path and storage area as the installed app.
-    // A unique URL forces a new document request in Safari and Home Screen mode.
+  function freshReload(targetVersion, automatic = false) {
+    if (!saveProgressBeforeReload()) return false;
+    // Stay on the same origin so the existing Home Screen app and progress remain.
     const url = new URL(window.location.href);
     url.searchParams.set("app_version", targetVersion || APP_VERSION);
     url.searchParams.set("_reload", String(Date.now()));
+    // Automatic reloads carry a one-attempt marker. If the CDN is still
+    // serving old HTML, this prevents an endless refresh loop.
+    if (automatic) url.searchParams.set("_auto_update", targetVersion);
+    else url.searchParams.delete("_auto_update");
     window.location.replace(url.toString());
+    return true;
   }
 
   async function checkForUpdates({ auto = false } = {}) {
     if (busy) return;
     if (!auto) report("Checking the latest published version…");
+    lastCheckAt = Date.now();
     setBusy(true);
     try {
       const availableVersion = await latestVersion();
       if (availableVersion === APP_VERSION) {
         if (!auto) report("You're already on the latest version (" + APP_VERSION + ").");
       } else if (auto) {
-        report("Update available (" + availableVersion + "). Tap Check for updates.");
+        const alreadyAttempted = new URL(window.location.href)
+          .searchParams.get("_auto_update") === availableVersion;
+        if (alreadyAttempted) {
+          report("An update was found, but the new files may not be published yet. Try Reload app later.");
+        } else {
+          report("New version " + availableVersion + " found. Saving progress and updating automatically…");
+          freshReload(availableVersion, true);
+        }
       } else {
         report("Update found (" + availableVersion + "). Reloading with your progress saved…");
-        freshReload(availableVersion);
+        freshReload(availableVersion, false);
       }
     } catch (error) {
+      // Offline startup is fine: existing flashcards remain fully usable.
       if (!auto) report(
         "Couldn't check for updates. Check your connection, or use Reload app.",
         true
@@ -103,6 +118,27 @@
     freshReload(APP_VERSION);
   });
 
-  // Notice future releases without unexpectedly restarting a study session.
-  checkForUpdates({ auto: true });
+  // Check automatically on every full startup, *after* the CSV has been
+  // reconciled into the saved deck. This avoids racing a progress write.
+  Promise.resolve(window.flashcardsReady)
+    .catch(() => {}) // Updates should still work if the CSV cannot load.
+    .then(() => checkForUpdates({ auto: true }));
+
+  // iOS Home Screen apps can resume an existing page without reloading.
+  // If it has been in the background for more than 30 seconds, check again
+  // when brought to the foreground, without requiring a manual tap.
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      hiddenAt = Date.now();
+      return;
+    }
+    if (hiddenAt === null) return;
+    const awayMs = Date.now() - hiddenAt;
+    hiddenAt = null;
+    if (awayMs >= 30000 && Date.now() - lastCheckAt >= 30000) {
+      Promise.resolve(window.flashcardsReady)
+        .catch(() => {})
+        .then(() => checkForUpdates({ auto: true }));
+    }
+  });
 })();
