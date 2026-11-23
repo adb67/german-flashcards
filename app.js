@@ -10,6 +10,7 @@ const STORAGE_KEY = "de_flashcards_state_v3";
 const CSV_URL_KEY = "de_flashcards_csv_url_v1";
 const AUTOSPEAK_KEY = "de_flashcards_autospeak_v1";
 const TYPES_KEY = "de_flashcards_selected_types_v1";
+const CASE_FILTER_KEY = "de_flashcards_selected_grammar_cases_v1";
 
 // If this file exists alongside index.html, it will be auto-loaded:
 const DEFAULT_CSV_FILENAME = "flashcard_final_with_examples.csv";
@@ -97,6 +98,8 @@ function rowsToCards(rows) {
   const typeI = idx("type");
   const exI = idx("example");
   const exEnI = idx("example_en");
+  const caseI = idx("case_type");
+  const noteI = idx("grammar_note");
 
   const get = (r, i, fallback = "") => (i >= 0 ? (r[i] || "") : fallback);
 
@@ -107,6 +110,8 @@ function rowsToCards(rows) {
       type: (get(r, typeI, "other") || "other").trim().toLowerCase(),
       example: (get(r, exI, "") || "").trim(),
       example_en: (get(r, exEnI, "") || "").trim(),
+      caseType: (get(r, caseI, "") || "").trim().toLowerCase(),
+      grammarNote: (get(r, noteI, "") || "").trim(),
     }))
     .filter(c => c.de && c.en);
 }
@@ -127,6 +132,73 @@ async function tryAutoLoadLocalCSV() {
   } catch {
     return null;
   }
+}
+
+// ---------- Grammar enrichment and progress migration ----------
+function cardIdentity(c) {
+  if (c.grammarId) return "grammar:" + c.grammarId;
+  return "vocab:" + [c.type || "other", c.de, c.en].join("|").toLowerCase();
+}
+
+function extendWithGrammar(cards) {
+  const grammar = window.GERMAN_GRAMMAR || { pronounCards: [], verbCards: [] };
+  const verbMap = new Map(grammar.verbCards.map(v => [v.de.toLowerCase(), v]));
+  const baseCards = cards.filter(c => c && c.de && c.en && !c.grammarId);
+  const existingVerbs = new Set();
+
+  const enriched = baseCards.map(c => {
+    const copy = { ...c };
+    const verbName = (c.de || "").trim().toLowerCase();
+    if ((c.type || "").toLowerCase() === "verb") {
+      existingVerbs.add(verbName);
+      const info = verbMap.get(verbName);
+      if (info) {
+        copy.caseType = info.caseType;
+        copy.grammarNote = info.grammarNote;
+        copy.caseExample = info.example;
+        copy.caseExampleEn = info.example_en;
+      }
+    }
+    return copy;
+  });
+
+  // Preserve existing vocabulary, adding verb cards only when absent.
+  const extraVerbs = grammar.verbCards
+    .filter(v => !existingVerbs.has(v.de.toLowerCase()))
+    .map(v => ({ ...v }));
+  return [...enriched, ...grammar.pronounCards.map(c => ({ ...c })), ...extraVerbs];
+}
+
+function reconcileStudyState(previous, cards) {
+  const oldProgress = new Map();
+  (previous.cards || []).forEach((c, i) => {
+    const key = cardIdentity(c);
+    if (!oldProgress.has(key) && previous.progress && previous.progress[i]) {
+      oldProgress.set(key, previous.progress[i]);
+    }
+  });
+  const fresh = initProgressForCards(cards);
+  const progress = cards.map((c, i) => oldProgress.get(cardIdentity(c)) || fresh[i]);
+  const allTypes = uniqueTypes(cards);
+  const savedTypes = loadSavedTypes();
+  const previousTypes = savedTypes && savedTypes.length ? savedTypes : previous.selectedTypes;
+  const selectedTypes = Array.isArray(previousTypes) && previousTypes.length
+    ? previousTypes.filter(t => allTypes.includes(t.toLowerCase()))
+    : allTypes;
+
+  const lastCard = previous.cards && previous.cards[previous.lastIndex];
+  const lastIndex = lastCard
+    ? cards.findIndex(c => cardIdentity(c) === cardIdentity(lastCard))
+    : -1;
+
+  return {
+    version: 4,
+    cards,
+    progress,
+    lastIndex,
+    selectedTypes: selectedTypes.length ? selectedTypes : allTypes,
+    selectedCaseFilters: loadCaseFilters() || previous.selectedCaseFilters || []
+  };
 }
 
 // ---------- Speech ----------
@@ -165,7 +237,8 @@ function initState(cards) {
     cards,
     progress: initProgressForCards(cards),
     lastIndex: -1,
-    selectedTypes
+    selectedTypes,
+    selectedCaseFilters: loadCaseFilters() || []
   };
 }
 
@@ -194,6 +267,7 @@ function loadState() {
     s.selectedTypes = (savedTypes && savedTypes.length) ? savedTypes : (s.selectedTypes && s.selectedTypes.length ? s.selectedTypes : types);
 
     if (!Number.isFinite(s.lastIndex)) s.lastIndex = -1;
+    if (!Array.isArray(s.selectedCaseFilters)) s.selectedCaseFilters = loadCaseFilters() || [];
     return s;
   } catch {
     return initState(FALLBACK_CARDS);
@@ -219,6 +293,19 @@ function loadSavedTypes() {
   }
 }
 
+function saveCaseFilters(filters) {
+  localStorage.setItem(CASE_FILTER_KEY, JSON.stringify(filters));
+}
+function loadCaseFilters() {
+  try {
+    const raw = localStorage.getItem(CASE_FILTER_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- Type filtering helpers ----------
 function uniqueTypes(cards) {
   const set = new Set(cards.map(c => (c.type || "other").toLowerCase().trim()));
@@ -230,7 +317,11 @@ function activeIndicesForSelectedTypes() {
   const idxs = [];
   for (let i = 0; i < state.cards.length; i++) {
     const t = (state.cards[i].type || "other").toLowerCase();
-    if (selected.has(t)) idxs.push(i);
+    if (!selected.has(t)) continue;
+    const caseFocus = state.selectedCaseFilters || [];
+    const c = state.cards[i];
+    if (caseFocus.length && !caseFocus.includes(c.type + ":" + c.caseType)) continue;
+    idxs.push(i);
   }
   return idxs;
 }
@@ -301,6 +392,9 @@ const wrongBtn  = document.getElementById("wrongBtn");
 const resetBtn  = document.getElementById("resetBtn");
 const statusLine = document.getElementById("statusLine");
 const typeTag = document.getElementById("typeTag");
+const grammarNoteEl = document.getElementById("grammarNote");
+const grammarExDe = document.getElementById("grammarExDe");
+const grammarExEn = document.getElementById("grammarExEn");
 
 const speakBtn = document.getElementById("speakBtn");
 const speakSlowBtn = document.getElementById("speakSlowBtn");
@@ -318,6 +412,8 @@ const csvFileInput = document.getElementById("csvFileInput");
 // Menu overlay UI
 const menuOverlay = document.getElementById("menuOverlay");
 const typeList = document.getElementById("typeList");
+const caseList = document.getElementById("caseList");
+const clearCaseBtn = document.getElementById("clearCaseBtn");
 const startBtn = document.getElementById("startBtn");
 const menuBtn = document.getElementById("menuBtn");
 const selectAllBtn = document.getElementById("selectAllBtn");
@@ -352,6 +448,29 @@ function buildTypeList() {
     `;
     typeList.appendChild(div);
   }
+
+  const options = [
+    ["pronoun:nominative", "Pronouns – nominative"],
+    ["pronoun:accusative", "Pronouns – accusative"],
+    ["pronoun:dative", "Pronouns – dative"],
+    ["verb:dative", "Verbs – dative"],
+    ["verb:accusative", "Verbs – accusative"],
+    ["verb:both", "Verbs – dative + accusative"]
+  ];
+  const active = new Set(state.selectedCaseFilters || []);
+  caseList.innerHTML = "";
+  for (const [value, label] of options) {
+    const row = document.createElement("label");
+    row.className = "typeItem";
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.value = value;
+    check.checked = active.has(value);
+    const labelEl = document.createElement("span");
+    labelEl.textContent = label;
+    row.append(check, labelEl);
+    caseList.appendChild(row);
+  }
 }
 
 function readSelectedTypesFromUI() {
@@ -364,6 +483,19 @@ function readSelectedTypesFromUI() {
     }
   });
   return types;
+}
+
+function readSelectedCasesFromUI() {
+  return [...caseList.querySelectorAll('input[type="checkbox"]:checked')].map(el => el.value);
+}
+function caseLabel(caseType) {
+  return caseType === "both" ? "DATIVE + ACCUSATIVE" : (caseType || "").toUpperCase();
+}
+function renderTypeTag(c, revealCase = false) {
+  // Pronouns show their case on the front; verb case appears with the answer.
+  typeTag.textContent = (c.type || "other").toUpperCase()
+    + (c.caseType && (c.type === "pronoun" || revealCase)
+      ? " · " + caseLabel(c.caseType) : "");
 }
 
 function renderCard() {
@@ -383,7 +515,7 @@ function renderCard() {
 
   frontText.textContent = c.de;
   // ✅ Show the word type on the card
-typeTag.textContent = c.type ? c.type.toUpperCase() : "";
+renderTypeTag(c);
 
 
   // Hide answer by default
@@ -403,6 +535,17 @@ typeTag.textContent = c.type ? c.type.toUpperCase() : "";
 function showAnswer() {
   const c = state.cards[currentIndex];
   backText.textContent = c.en;
+  renderTypeTag(c, true);
+
+  const explanation = c.caseType === "both"
+    ? "Dative recipient + accusative thing in this example."
+    : c.caseType === "dative" ? "The person concerned is dative."
+    : c.caseType === "accusative" ? "The direct object is accusative." : "";
+  grammarNoteEl.textContent = c.grammarNote || (c.type === "verb" ? explanation : "");
+  grammarExDe.textContent = c.caseExample ? "Case example: " + c.caseExample : "";
+  grammarExEn.textContent = c.caseExampleEn || "";
+  document.getElementById("grammarDetails").classList.toggle("hidden",
+    !(grammarNoteEl.textContent || grammarExDe.textContent || grammarExEn.textContent));
 
   exDe.textContent = c.example ? `DE: ${c.example}` : "";
   exEn.textContent = c.example_en ? `EN: ${c.example_en}` : "";
@@ -430,6 +573,7 @@ flipBtn.addEventListener("click", () => {
     flipBtn.textContent = "Hide answer";
   } else {
     answerBlock.classList.add("hidden");
+    renderTypeTag(state.cards[currentIndex]);
     flipBtn.textContent = "Show answer";
   }
 });
@@ -482,7 +626,9 @@ refreshCsvBtn.addEventListener("click", async () => {
   if (!url) return alert("Paste a CSV URL first.");
   try {
     const cards = await loadCardsFromCSVUrl(url);
-    state = initState(cards);
+    state = initState(extendWithGrammar(cards));
+    state.selectedCaseFilters = [];
+    saveCaseFilters([]);
     saveSelectedTypes(state.selectedTypes);
     saveState();
     currentIndex = pickNextIndex(state, -1);
@@ -504,7 +650,9 @@ csvFileInput.addEventListener("change", async () => {
     const cards = rowsToCards(parseCSV(text));
     if (!cards.length) throw new Error("No valid cards found in this CSV.");
 
-    state = initState(cards);
+    state = initState(extendWithGrammar(cards));
+    state.selectedCaseFilters = [];
+    saveCaseFilters([]);
     saveSelectedTypes(state.selectedTypes);
     saveState();
     currentIndex = pickNextIndex(state, -1);
@@ -537,12 +685,17 @@ importBtn.addEventListener("click", () => {
         type: (c.type || "other").toString().trim().toLowerCase(),
         example: (c.example || "").toString().trim(),
         example_en: (c.example_en || "").toString().trim(),
+        grammarId: (c.grammarId || "").toString().trim(),
+        caseType: (c.caseType || "").toString().trim().toLowerCase(),
+        grammarNote: (c.grammarNote || "").toString().trim(),
       }))
       .filter(c => c.de && c.en);
 
     if (!cards.length) throw new Error("No valid cards found");
 
-    state = initState(cards);
+    state = initState(extendWithGrammar(cards));
+    state.selectedCaseFilters = [];
+    saveCaseFilters([]);
     saveSelectedTypes(state.selectedTypes);
     saveState();
     currentIndex = pickNextIndex(state, -1);
@@ -565,6 +718,9 @@ selectNoneBtn.addEventListener("click", () => {
   const checks = typeList.querySelectorAll("input[type=checkbox]");
   checks.forEach(ch => ch.checked = false);
 });
+clearCaseBtn.addEventListener("click", () => {
+  caseList.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = false);
+});
 
 startBtn.addEventListener("click", () => {
   const selected = readSelectedTypesFromUI();
@@ -573,7 +729,9 @@ startBtn.addEventListener("click", () => {
     return;
   }
   state.selectedTypes = selected;
+  state.selectedCaseFilters = readSelectedCasesFromUI();
   saveSelectedTypes(selected);
+  saveCaseFilters(state.selectedCaseFilters);
   saveState();
 
   currentIndex = pickNextIndex(state, state.lastIndex);
@@ -585,11 +743,8 @@ startBtn.addEventListener("click", () => {
 (async function start() {
   // Try to auto-load local CSV file if it exists on the same host
   const cards = await tryAutoLoadLocalCSV();
-  if (cards && cards.length) {
-    state = initState(cards);
-    saveSelectedTypes(state.selectedTypes);
-    saveState();
-  }
+  state = reconcileStudyState(state, extendWithGrammar(cards && cards.length ? cards : state.cards));
+  saveState();
 
   currentIndex = pickNextIndex(state, state.lastIndex);
   renderCard();
