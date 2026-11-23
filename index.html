@@ -11,7 +11,7 @@
   <section id="menuOverlay" class="overlay hidden" aria-modal="true" role="dialog">
     <div class="overlayCard">
       <div class="overlayTitle">Choose what to learn</div>
-      <div class="overlaySub">Select word types. Optionally focus on particular pronoun or verb cases below.</div>
+      <div class="overlaySub">Choose word types, or practise specific pronoun and verb cases.</div>
 
       <div class="row">
         <button id="selectAllBtn" class="ghost">Select all</button>
@@ -20,9 +20,14 @@
 
       <div id="typeList" class="typeList"></div>
 
-      <div class="row grammarMenuHeading"><strong>Grammar focus (optional)</strong><button id="clearCaseBtn" class="ghost smallButton">All cases</button></div>
-      <div class="overlaySub">Leave every grammar box unticked to study all word types. Selecting any case shows only matching pronoun and verb cards.</div>
+      <div class="grammarMenuHeading"><strong>Grammar focus (optional)</strong></div>
+      <div class="row grammarCaseActions">
+        <button id="selectAllCasesBtn" type="button" class="ghost smallButton">Select all cases</button>
+        <button id="clearCaseBtn" type="button" class="ghost smallButton">Clear focus</button>
+      </div>
+      <div class="overlaySub">No case focus = all selected word types. Selecting cases practises only matching pronouns or verbs, automatically including their word types.</div>
       <div id="caseList" class="typeList caseList"></div>
+      <div class="caseSelectionStatus" id="caseSelectionStatus" role="status" aria-live="polite"></div>
 
       <div class="row">
         <button id="startBtn" class="good">Start</button>

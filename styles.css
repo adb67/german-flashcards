@@ -344,3 +344,42 @@ code{
   .typeList { max-height: 24vh; }
   .caseList { max-height: 18vh; }
 }
+
+/* One scroll area for the whole menu on phones. Nested scrolling previously
+   hid the final grammar option behind Start and trapped touch gestures. */
+.overlay {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+}
+.overlayCard {
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.overlayCard .typeList,
+.overlayCard .caseList {
+  max-height: none;
+  overflow: visible;
+}
+.grammarCaseActions {
+  margin-top: 10px;
+}
+.grammarCaseActions button {
+  flex: 1 1 0 !important;
+  min-width: 0;
+  font-size: 13px;
+  padding: 12px 8px;
+}
+.caseSelectionStatus {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 8px 0 4px;
+}
+@media (max-height: 650px) {
+  .overlayCard { max-height: calc(100dvh - 24px); }
+  .overlayCard .typeList, .overlayCard .caseList { max-height: none; }
+}
