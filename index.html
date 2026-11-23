@@ -11,7 +11,7 @@
   <section id="menuOverlay" class="overlay hidden" aria-modal="true" role="dialog">
     <div class="overlayCard">
       <div class="overlayTitle">Choose what to learn</div>
-      <div class="overlaySub">Select one or more word types (or Select all).</div>
+      <div class="overlaySub">Select word types. Optionally focus on particular pronoun or verb cases below.</div>
 
       <div class="row">
         <button id="selectAllBtn" class="ghost">Select all</button>
@@ -19,6 +19,10 @@
       </div>
 
       <div id="typeList" class="typeList"></div>
+
+      <div class="row grammarMenuHeading"><strong>Grammar focus (optional)</strong><button id="clearCaseBtn" class="ghost smallButton">All cases</button></div>
+      <div class="overlaySub">Leave every grammar box unticked to study all word types. Selecting any case shows only matching pronoun and verb cards.</div>
+      <div id="caseList" class="typeList caseList"></div>
 
       <div class="row">
         <button id="startBtn" class="good">Start</button>
@@ -48,6 +52,7 @@
       <!-- Answer area -->
       <div id="answerBlock" class="hidden">
         <div class="back" id="backText"></div>
+        <div id="grammarDetails" class="grammarDetails hidden"><div id="grammarNote"></div><div id="grammarExDe"></div><div id="grammarExEn"></div></div>
 
         <div class="examples">
           <div class="exDe" id="exDe"></div>
@@ -101,7 +106,7 @@
           <button id="refreshCsvBtn">Refresh from CSV</button>
         </div>
         <div class="small hint">
-          CSV headers expected: <code>de,en,type,example,example_en</code>
+          CSV headers expected: <code>de,en,type,example,example_en</code>. Optional grammar fields: <code>case_type,grammar_note</code>.
         </div>
       </div>
 
@@ -121,6 +126,7 @@
     </details>
   </main>
 
+  <script src="grammar.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

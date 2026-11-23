@@ -321,3 +321,26 @@ code{
   padding: 22px;
   font-size: 20px;
 }
+
+/* Grammar study filters and case explanations */
+.grammarMenuHeading { margin-top: 14px; justify-content: space-between; }
+.grammarMenuHeading strong { font-size: 14px; }
+.smallButton { flex: 0 0 auto !important; padding: 8px 12px; font-size: 13px; border-radius: 10px; }
+.caseList { max-height: 23vh; }
+.grammarDetails {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.grammarDetails > div + div { margin-top: 6px; }
+#grammarNote { font-weight: 600; }
+#grammarExEn { color: var(--muted); }
+@media (max-height: 650px) {
+  .overlayCard { max-height: 94vh; overflow-y: auto; }
+  .typeList { max-height: 24vh; }
+  .caseList { max-height: 18vh; }
+}
