@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.23.5",
+  "version": "2026.11.23.6",
   "released": "2026-11-23",
-  "notes": "Pronoun flashcards now ask in English and reveal German after flipping. Pronoun audio is held until the answer is shown."
+  "notes": "Automatically check and install new app versions at launch or after returning to the app, preserving spaced-repetition progress."
 }
