@@ -5,12 +5,22 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2026.11.23.6";
+  const APP_VERSION = "2026.11.23.7";
   const checkButton = document.getElementById("checkUpdateBtn");
   const reloadButton = document.getElementById("reloadAppBtn");
   const updateStatus = document.getElementById("updateStatus");
   const versionLabel = document.getElementById("appVersion");
+  const settingsToggle = document.getElementById("settingsToggle");
+  const settingsPanel = document.getElementById("settingsPanel");
   if (!checkButton || !reloadButton || !updateStatus || !versionLabel) return;
+
+  if (settingsToggle && settingsPanel) {
+    settingsToggle.addEventListener("click", function () {
+      const opening = settingsPanel.classList.contains("hidden");
+      settingsPanel.classList.toggle("hidden", !opening);
+      settingsToggle.setAttribute("aria-expanded", String(opening));
+    });
+  }
 
   let busy = false;
   let hiddenAt = null;
