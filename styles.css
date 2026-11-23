@@ -383,3 +383,32 @@ code{
   .overlayCard { max-height: calc(100dvh - 24px); }
   .overlayCard .typeList, .overlayCard .caseList { max-height: none; }
 }
+
+/* Update controls within the study selection menu */
+.updatePanel {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+.updatePanelHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.updatePanelHead strong { font-size: 14px; }
+#appVersion { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.updateButtons { margin-top: 10px; }
+.updateButtons button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 12px 7px;
+  font-size: 13px;
+  line-height: 1.2;
+  border-radius: 12px;
+}
+.updateButtons button:disabled { opacity: 0.55; cursor: progress; }
+.updateStatus { margin-top: 8px; min-height: 18px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.updateStatus.updateError { color: #ffa4a4; }

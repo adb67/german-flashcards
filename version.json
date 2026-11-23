@@ -1,0 +1,5 @@
+{
+  "version": "2026.11.23.4",
+  "released": "2026-11-23",
+  "notes": "Added in-app update check and cache-busting reload to the installed flashcard app."
+}
