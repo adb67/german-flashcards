@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2026.11.23.4";
+  const APP_VERSION = "2026.11.23.5";
   const checkButton = document.getElementById("checkUpdateBtn");
   const reloadButton = document.getElementById("reloadAppBtn");
   const updateStatus = document.getElementById("updateStatus");

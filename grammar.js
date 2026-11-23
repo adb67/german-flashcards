@@ -569,6 +569,9 @@
       grammarId: "pronoun:" + id + ":" + caseType,
       de: forms[i],
       en: meanings[i] + " (" + person + "; " + caseType + ")",
+      // Separate English recall prompt; the German form remains hidden until flipped.
+      promptEn: meanings[i],
+      promptPerson: person,
       type: "pronoun",
       caseType,
       example: examples[i],

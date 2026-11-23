@@ -383,6 +383,8 @@ function formatDue(ms) {
 const frontText = document.getElementById("frontText");
 const answerBlock = document.getElementById("answerBlock");
 const backText  = document.getElementById("backText");
+const promptContext = document.getElementById("promptContext");
+const promptDirection = document.getElementById("promptDirection");
 const exDe = document.getElementById("exDe");
 const exEn = document.getElementById("exEn");
 
@@ -512,6 +514,20 @@ function renderTypeTag(c, revealCase = false) {
       ? " · " + caseLabel(c.caseType) : "");
 }
 
+function isPronounRecall(c) {
+  return Boolean(c && (c.type || "").toLowerCase() === "pronoun");
+}
+
+// Pronouns use English -> German recall. Vocabulary and verbs keep
+// their existing German -> English presentation.
+function setGermanSpeechAvailable(available) {
+  speakBtn.disabled = !available;
+  speakSlowBtn.disabled = !available;
+  const help = available ? "" : "Reveal the German pronoun first";
+  speakBtn.title = help;
+  speakSlowBtn.title = help;
+}
+
 function renderCard() {
   const active = activeIndicesForSelectedTypes();
 
@@ -521,15 +537,25 @@ function renderCard() {
     typeTag.textContent = "";
     answerBlock.classList.add("hidden");
     flipBtn.textContent = "Show answer";
+    promptContext.classList.add("hidden");
+    promptDirection.classList.add("hidden");
+    setGermanSpeechAvailable(false);
     return;
   }
 
   const c = state.cards[currentIndex];
   const p = state.progress[currentIndex];
 
-  frontText.textContent = c.de;
-  // ✅ Show the word type on the card
-renderTypeTag(c);
+  const reversePronoun = isPronounRecall(c);
+  frontText.textContent = reversePronoun ? (c.promptEn || c.en) : c.de;
+  // An English word on its own can be ambiguous (e.g. "you"),
+  // so show the intended person without revealing the German form.
+  promptDirection.classList.toggle("hidden", !reversePronoun);
+  promptContext.textContent = reversePronoun && c.promptPerson
+    ? "Person: " + c.promptPerson : "";
+  promptContext.classList.toggle("hidden", !promptContext.textContent);
+  renderTypeTag(c);
+  setGermanSpeechAvailable(!reversePronoun);
 
 
   // Hide answer by default
@@ -541,15 +567,25 @@ renderTypeTag(c);
     `Types: ${state.selectedTypes.length} selected • Due: ${dueCountActive()}/${active.length} • This card: ${formatDue(p.dueMs)}`;
 
   // Auto-speak
-  if (autoSpeakToggle.checked) {
+  if (autoSpeakToggle.checked && !reversePronoun) {
     setTimeout(() => speakGerman(c.de, 1.0), 120);
   }
 }
 
 function showAnswer() {
   const c = state.cards[currentIndex];
-  backText.textContent = c.en;
+  const reversePronoun = isPronounRecall(c);
+  backText.textContent = reversePronoun ? c.de : c.en;
   renderTypeTag(c, true);
+  setGermanSpeechAvailable(true);
+  // Do not speak the German answer until the learner has flipped.
+  if (reversePronoun && autoSpeakToggle.checked) {
+    setTimeout(() => {
+      if (currentIndex >= 0 && showingAnswer && state.cards[currentIndex] === c) {
+        speakGerman(c.de, 1.0);
+      }
+    }, 120);
+  }
 
   const explanation = c.caseType === "both"
     ? "Dative recipient + accusative thing in this example."
@@ -588,6 +624,9 @@ flipBtn.addEventListener("click", () => {
   } else {
     answerBlock.classList.add("hidden");
     renderTypeTag(state.cards[currentIndex]);
+    if (isPronounRecall(state.cards[currentIndex])) {
+      setGermanSpeechAvailable(false);
+    }
     flipBtn.textContent = "Show answer";
   }
 });
