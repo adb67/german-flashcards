@@ -414,6 +414,8 @@ const menuOverlay = document.getElementById("menuOverlay");
 const typeList = document.getElementById("typeList");
 const caseList = document.getElementById("caseList");
 const clearCaseBtn = document.getElementById("clearCaseBtn");
+const selectAllCasesBtn = document.getElementById("selectAllCasesBtn");
+const caseSelectionStatus = document.getElementById("caseSelectionStatus");
 const startBtn = document.getElementById("startBtn");
 const menuBtn = document.getElementById("menuBtn");
 const selectAllBtn = document.getElementById("selectAllBtn");
@@ -471,7 +473,19 @@ function buildTypeList() {
     row.append(check, labelEl);
     caseList.appendChild(row);
   }
+  updateCaseSelectionStatus();
 }
+
+function updateCaseSelectionStatus() {
+  const count = readSelectedCasesFromUI().length;
+  caseSelectionStatus.textContent = count === 0
+    ? "No case filter: all selected word types available."
+    : count === 6
+      ? "All six grammar cases selected."
+      : count + " of 6 grammar cases selected.";
+}
+
+caseList.addEventListener("change", updateCaseSelectionStatus);
 
 function readSelectedTypesFromUI() {
   const checks = typeList.querySelectorAll("input[type=checkbox]");
@@ -718,18 +732,30 @@ selectNoneBtn.addEventListener("click", () => {
   const checks = typeList.querySelectorAll("input[type=checkbox]");
   checks.forEach(ch => ch.checked = false);
 });
+selectAllCasesBtn.addEventListener("click", () => {
+  caseList.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = true);
+  updateCaseSelectionStatus();
+});
 clearCaseBtn.addEventListener("click", () => {
   caseList.querySelectorAll('input[type="checkbox"]').forEach(ch => ch.checked = false);
+  updateCaseSelectionStatus();
 });
 
 startBtn.addEventListener("click", () => {
   const selected = readSelectedTypesFromUI();
+  const selectedCases = readSelectedCasesFromUI();
+  // A case-focus choice automatically includes its associated word type.
+  // For example, Pronouns – dative works even when the pronoun type is unticked above.
+  for (const caseFocus of selectedCases) {
+    const type = caseFocus.split(":")[0];
+    if (!selected.includes(type)) selected.push(type);
+  }
   if (!selected.length) {
-    alert("Select at least one type (or Select all).");
+    alert("Select at least one word type or grammar case.");
     return;
   }
   state.selectedTypes = selected;
-  state.selectedCaseFilters = readSelectedCasesFromUI();
+  state.selectedCaseFilters = selectedCases;
   saveSelectedTypes(selected);
   saveCaseFilters(state.selectedCaseFilters);
   saveState();
