@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.23.6",
+  "version": "2026.11.23.7",
   "released": "2026-11-23",
-  "notes": "Automatically check and install new app versions at launch or after returning to the app, preserving spaced-repetition progress."
+  "notes": "Moved manual update and reload buttons into a compact hamburger settings menu; automatic startup updates continue to run."
 }
